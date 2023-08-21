@@ -502,3 +502,213 @@ title ('Convolved Signal'); xlabel ('Samples');
 ylabel ('Amplitude');
 
 
+ii) Overlap Add Method
+close all;
+clear all;
+x=input('Enter First Sequence x[n]= '); h=input('Enter Second Sequence h[n]= '); N=input('Enter length of each block N = ');
+Lx=length(x); M=length(h); L=N-M+1; K=ceil(Lx/L); R=rem(Lx,L);
+%Padding zeros to input sequences to make length equal to N
+if R>0
+x=[x zeros(1,L-R)]
+end
+h=[h zeros(1,N-M)]
+%Initialising the Output
+y=zeros(N,K);
+%Padding zeros to Input sequence at the end of the sequence
+z=zeros(1,M-1);
+%To perform Circular Convolution of two input sequences
+for i=0:K-1 Xn=x(L*i+1:L*i+L); Xi=[Xn z]; u(i+1,:)=cconv(Xi,h,N);
+end
+Y=u';
+for i=1:K-1
+u(i+1,1:M-1)= u(i,M:N)+u(i+1,1:M-1);
+end
+z1=u(:,1:L)'; y1=(z1(:))';
+y=[y1 u(K,(M:N))]
+%Ploting the Input Sequences
+subplot (2,2,1);
+stem(x);
+title('First Sequence x[n]'); xlabel ('Samples');
+ylabel ('Amplitude');
+subplot (2,2,2);
+stem(h);
+title('Second Sequence h[n]'); xlabel ('Samples');
+ylabel ('Amplitude');
+%Plotting of the Convoled Signal
+subplot (2,2,3:4); stem(y);
+title ('Convolved Signal'); xlabel ('Samples');
+ylabel ('Amplitude');
+
+
+
+FFT
+
+close all;
+clear all;
+x=input('Enter the input Sequnce x[n] '); L=length(x);
+N=input('Enter the length of the FFT sequence N ='); if(N<L)
+disp('N should be greater than L') else
+x=[x zeros(1,N-L)]
+end
+%Plotting the Input Sequence
+d=0:N-1
+subplot(3,1,1)
+stem(d,x)
+title('Input Sequence x[n]');
+%To alter the input sequence ie x[0] x[2] x[1] x[3]
+x=bitrevorder(x);
+M=log2(N); h=1;
+for stage=1:M
+for index=0:(2^stage):N-1
+for n=0:(h-1) pos=n+index+1;
+pow=(2^(M-stage)*n); w=exp((-i)*(2*pi)*pow/N); a=x(pos)+x(pos+h).*w; b=x(pos)-x(pos+h).*w; x(pos)=a;
+x(pos+h)=b;
+end end
+h=2*h;
+end
+y=x disp(y)
+
+
+%Plotting the FFT Sequence
+subplot(3,1,2)
+stem(d,y)
+title('FFT Sequence X(K)');
+y=bitrevorder(y); h=1;
+for stage=1:M
+for index=0:(2^stage):N-1
+for n=0:(h-1) pos=n+index+1; pow=(2^(M-stage)*n); w=exp((i)*(2*pi)*pow/N); a=y(pos)+y(pos+h).*w; b=y(pos)-y(pos+h).*w; y(pos)=a;
+y(pos+h)=b;
+end end
+h=2*h;
+end
+z=y/N disp(z)
+%Plotting the IFFT Sequence
+subplot(3,1,3)
+stem(d,z)
+title('IFFT Sequence z[n]');
+
+
+
+IIR filter
+
+clc;
+clear all
+close all
+h=fir1(33,150/(1000/2),hamming(34));
+n=1:30;
+f1=50;f2=300;f3=200;fs=1000;
+x=[];
+x1=sin(2*pi*n*f1/fs);
+x2=sin(2*pi*n*f2/fs);
+x3=sin(2*pi*n*f3/fs);
+x=sin(2*pi*n*fs/fs);
+x=[x1 x2 x3];
+subplot(2,1,1);
+stem(x);
+title('input signal')
+y=filter(h,1,x)
+subplot(2,1,2);
+stem(y);
+title('Output signal')
+
+
+FIR filter
+
+clc;
+clear all
+close all
+wpa=input('Enter passband frequency in Hz');
+wsa=input('Enter stopband frequency in Hz');
+ws1= input('Enter sampling frequency in Hz')
+wpd=2*pi*wpa/ws1;
+wsd=2*pi*wsa/ws1;
+tb=wsd-wpd;
+fb=1/tb;
+N=ceil(6.6*pi*fb);
+wc=(wsd+wpd)/2;
+wc=wc/pi;
+hw=hamming(N+1);
+stem(hw);
+title('Hamming window');
+h=fir1(N,wc,hamming(N+1));
+figure(2);
+[m,w]=freqz(h,1,128);
+mag=20*log10(abs(m));
+plot(ws1*w/(2*pi),mag);
+title('FIR frequency Response')
+grid on;
+
+
+implementation of IIR
+
+[b,a]=butter(2,150/(1000/2));
+n=1:30;
+f1=100;f2=300;f3=170;fs=1000;
+x=[]
+x1=sin(2*pi*n*f1/fs);
+x2=sin(2*pi*n*f2/fs);
+x3=sin(2*pi*n*f3/fs);
+x=[x1 x2 x3];
+subplot(2,1,1);
+stem(x);
+title('input signal')
+y=filter(b,a,x)
+subplot(2,1,1);
+stem(y);
+title('Output signal')
+
+
+Design of IIR Butterworth Approximation 
+
+
+rp=1,rs=40,w1=800,w2=1200,ws=3600
+aw1=2*pi*w1/ws;
+aw2=2*pi*w2/ws;
+pw1=2*tan(aw1/2);
+pw2=2*tan(aw2/2);
+[n,wc]=buttord(pw1,pw2,rp,rs,'s');
+[b,a]=butter(n,wc,'s')
+fs=1;
+[num,den]=biinear(b,a,fs);
+[mag,freq1]=freqz(num,den,128);
+freq=freq1*ws/(2*pi);
+m=20*log10(abs(mag));
+plot(freq,m);
+grid;
+
+
+Design of IIR Chebyshev Approximation:
+
+rp=1,rs=40,w1=800,w2=1200, ws=3600;
+aw1=2*pi*w1/ws;
+aw2=2*pi*w2/ws;
+pw1=2*tan(aw1/2);
+pw2=2*tan(aw2/2);
+[n,wc]=cheb1 ord(pw1,pw2,rp,rs,'s');
+[b,a]=cheby1(n,rp,wc,'s');
+fs=1;
+[num, den]=bilinear(b,a,fs);
+[mag,freq1]=freqz(num,den,128);
+freq=freq1*ws/(2*pi);
+m=20*log10(abs(mag));
+plot(freq,m);
+grid;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
